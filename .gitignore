@@ -1,0 +1,7 @@
+venv
+.env
+
+db.*
+*.db
+__pycach__/
+*.pyc

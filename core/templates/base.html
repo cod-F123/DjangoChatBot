@@ -1,0 +1,19 @@
+{% load static %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f4">
+  <title>{% block title %}هم‌صحبت — دستیار هوشمند{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'django_cotton_ui/cotton-ui.css' %}">
+  <link rel="stylesheet" href="{% static 'chatbot/css/app.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% block content %}{% endblock %}
+  <script defer src="{% static 'django_cotton_ui/cotton-ui.min.js' %}"></script>
+  <script defer src="{% static 'chatbot/js/app.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
