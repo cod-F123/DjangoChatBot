@@ -43,6 +43,8 @@ INSTALLED_APPS = [
 
     "django_cotton",
     "django_cotton_ui",
+    "rest_framework",
+    "django_filters",
 
 
     "chatbot",

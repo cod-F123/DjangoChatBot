@@ -1,19 +1,27 @@
 {% load static %}
 <!doctype html>
 <html lang="fa" dir="rtl">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f7f4">
-  <title>{% block title %}هم‌صحبت — دستیار هوشمند{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'django_cotton_ui/cotton-ui.css' %}">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f7f4">
+    <title>{% block title %}هم‌صحبت — دستیار هوشمند{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'django_cotton_ui/cotton-ui.css' %}">
   <link rel="stylesheet" href="{% static 'chatbot/css/app.css' %}">
-  {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'chatbot/css/sidebar.css' %}">
+  <link rel="stylesheet" href="{% static 'chatbot/css/loading.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
+
 <body>
-  {% block content %}{% endblock %}
-  <script defer src="{% static 'django_cotton_ui/cotton-ui.min.js' %}"></script>
-  <script defer src="{% static 'chatbot/js/app.js' %}"></script>
-  {% block scripts %}{% endblock %}
+    {% block content %}{% endblock %}
+    <script defer src="{% static 'django_cotton_ui/cotton-ui.min.js' %}"></script>
+    <script defer src="{% static 'chatbot/js/app.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/4.0.0/jquery.min.js"
+        integrity="sha512-8LENNbXmzI/Gbj+OwXmqR6V4QaUAw0/porPzy1+dQoJqC0JPHedWoe0DDOTL2uHA5XXJyIsPtiMHH86pVlay6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {% block scripts %}{% endblock %}
 </body>
+
 </html>

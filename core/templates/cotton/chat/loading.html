@@ -1,0 +1,15 @@
+<div class="chat-loading {% if variant == 'fullscreen' %}chat-loading--fullscreen{% endif %} {{ class }}"
+  role="status" aria-live="polite" aria-label="{{ label|default:'در حال بارگذاری' }}" data-loading>
+  {% if variant == 'fullscreen' %}
+  <div class="chat-loading-backdrop"></div>
+  <div class="chat-loading-card">
+    <div class="chat-loading-orbit" aria-hidden="true"><span class="chat-loading-orbit-ring"></span><span class="chat-loading-orbit-core">✳</span></div>
+    <strong class="chat-loading-title">{{ label|default:'در حال بارگذاری' }}</strong>
+    <span class="chat-loading-caption">یک لحظه صبر کنید…</span>
+    <span class="chat-loading-progress" aria-hidden="true"><i></i></span>
+  </div>
+  {% else %}
+  <span class="chat-loading-dot"></span><span class="chat-loading-dot"></span><span class="chat-loading-dot"></span>
+  <span class="sr-only">{{ label|default:'در حال بارگذاری' }}</span>
+  {% endif %}
+</div>

@@ -1,0 +1,6 @@
+.sidebar-close{display:none}
+@media(max-width:760px){
+  .sidebar-close{position:absolute;top:23px;left:16px;z-index:2;width:32px;height:32px;display:grid;place-items:center;border:1px solid #e3e8e2;border-radius:9px;background:#fff;color:#68766d;font-size:22px;line-height:1;cursor:pointer;transition:background .16s,color .16s,transform .16s}
+  .sidebar-close:hover{background:#e7eee8;color:#315b49;transform:rotate(90deg)}
+  .sidebar-close:focus-visible{outline:2px solid #6d9d80;outline-offset:2px}
+}

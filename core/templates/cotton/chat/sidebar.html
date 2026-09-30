@@ -1,18 +1,235 @@
 <aside class="sidebar" id="sidebar" aria-label="ناوبری گفتگوها">
-  <a class="brand" href="{% url 'chatbot:chat-bot' %}" aria-label="هم‌صحبت، صفحه اصلی">
-    <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18.5 5.7 15A8 8 0 1 1 9 18.4L5 20v-1.5Z"/><path d="M8.5 10.5h7m-7 3h4"/></svg></span>
-    <span><strong>هم‌صحبت</strong><small>دستیار هوشمند شما</small></span>
-  </a>
-  <button class="new-chat" type="button" data-new-chat><span class="plus">＋</span> گفت‌وگوی تازه <kbd>⌘ K</kbd></button>
-  <nav class="history" aria-label="گفتگوهای اخیر">
-    <p class="nav-label">گفتگوهای اخیر</p>
-    <a class="history-link is-current" href="#"><span class="history-dot"></span> ایده‌هایی برای شروع کسب‌وکار</a>
-    <a class="history-link" href="#"><span class="history-dot"></span> برنامه سفر به شیراز</a>
-    <a class="history-link" href="#"><span class="history-dot"></span> خلاصه کتاب عادت‌های اتمی</a>
-    <a class="history-link" href="#"><span class="history-dot"></span> دستور پخت نان خانگی</a>
-  </nav>
-  <div class="sidebar-bottom">
-    <div class="plan-card"><span class="plan-icon">✳</span><div><strong>هم‌صحبتِ پلاس</strong><small>برای ایده‌های بزرگ‌تر</small></div><span class="plan-arrow">←</span></div>
-    <button class="profile" type="button"><span class="avatar">م</span><span><strong>مهمان</strong><small>حساب کاربری</small></span><span class="profile-more">···</span></button>
-  </div>
+    <button class="sidebar-close" type="button" aria-label="بستن نوار کناری" data-sidebar-close>×</button>
+    <a class="brand" href="{% url 'chatbot:chat-bot' %}" aria-label="هم‌صحبت، صفحه اصلی">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24">
+                <path d="M5 18.5 5.7 15A8 8 0 1 1 9 18.4L5 20v-1.5Z" />
+                <path d="M8.5 10.5h7m-7 3h4" />
+            </svg></span>
+        <span><strong>هم‌صحبت</strong><small>دستیار هوشمند شما</small></span>
+    </a>
+    <button class="new-chat" type="button" data-new-chat><span class="plus">＋</span> گفت‌وگوی تازه <kbd>⌘
+            K</kbd></button>
+    <nav class="history" aria-label="گفتگوهای اخیر">
+        <p class="nav-label">گفتگوهای اخیر</p>
+        <!-- <a class="history-link is-current" href="#"><span class="history-dot"></span> ایده‌هایی برای شروع کسب‌وکار</a>
+        <a class="history-link" href="#"><span class="history-dot"></span> برنامه سفر به شیراز</a>
+        <a class="history-link" href="#"><span class="history-dot"></span> خلاصه کتاب عادت‌های اتمی</a>
+        <a class="history-link" href="#"><span class="history-dot"></span> دستور پخت نان خانگی</a> -->
+    </nav>
+    <div class="sidebar-bottom">
+        <div class="plan-card"><span class="plan-icon">✳</span>
+            <div><strong>هم‌صحبتِ پلاس</strong><small>برای ایده‌های بزرگ‌تر</small></div><span
+                class="plan-arrow">←</span>
+        </div>
+        <button class="profile" type="button"><span class="avatar">م</span><span><strong>مهمان</strong><small>حساب
+                    کاربری</small></span><span class="profile-more">···</span></button>
+    </div>
 </aside>
+<c-chat.confirm_modal />
+
+
+<script>
+
+    window.onload = (e) => {
+        let pendingDeleteItem = null;
+        const deleteModal = document.querySelector('#delete-confirm-modal');
+        const HistoriyWrapperElement = $(".history");
+        const pathname = window.location.pathname;
+        const template = document.querySelector('#loading-template');
+        const loading = template?.content.firstElementChild?.cloneNode(true);
+        loading.setAttribute('aria-label', "درحال بارگذازی");
+
+        HistoriyWrapperElement.append($(loading));
+        $.ajax({
+            method: "GET",
+            url: "{% url 'chatbot:api-v1:conversation-list' %}",
+            success: function (res) {
+
+                res.map(item => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'history-item';
+                    wrapper.dataset.conversationId = item.converstation_id;
+
+                    const link = document.createElement('a');
+                    link.className = `history-link${pathname.includes(item.converstation_id) ? ' is-current' : ''}`;
+                    link.href = `/chat/${item.converstation_id}/`;
+                    link.innerHTML = '<span class="history-dot"></span>';
+
+                    const title = document.createElement('span');
+                    title.className = 'history-title';
+                    title.textContent = item.title || 'گفت‌وگوی بدون عنوان';
+                    link.append(title);
+
+                    const editInput = document.createElement('input');
+                    editInput.className = 'history-edit-input';
+                    editInput.value = title.textContent;
+                    editInput.setAttribute('aria-label', 'عنوان گفتگو');
+                    editInput.hidden = true;
+                    link.append(editInput);
+
+                    const menuButton = document.createElement('button');
+                    menuButton.className = 'history-menu-button';
+                    menuButton.type = 'button';
+                    menuButton.setAttribute('aria-label', 'عملیات گفتگو');
+                    menuButton.setAttribute('aria-expanded', 'false');
+                    menuButton.innerHTML = '<span></span><span></span><span></span>';
+                    link.append(menuButton);
+
+                    const menu = document.createElement('div');
+                    menu.className = 'history-context-menu';
+                    menu.hidden = true;
+                    menu.innerHTML = '<button type="button" data-history-action="edit"><span>✎</span> ویرایش عنوان</button><button type="button" data-history-action="delete" class="is-danger"><span>⌫</span> حذف گفتگو</button>';
+                    wrapper.append(link, menu);
+                    HistoriyWrapperElement.append(wrapper);
+                })
+
+                loading?.remove();
+
+                bindHistoryMenu();
+
+            },
+            error: function (xhr, errmg, err) {
+                console.log(err);
+            }
+        })
+
+        function closeHistoryMenus(except) {
+            document.querySelectorAll('.history-context-menu:not([hidden])').forEach(menu => {
+                if (menu !== except) {
+                    menu.hidden = true;
+                    menu.previousElementSibling?.querySelector('.history-menu-button')?.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        function bindHistoryMenu() {
+            document.addEventListener('click', (event) => {
+                const menuButton = event.target.closest('.history-menu-button');
+                if (menuButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const menu = menuButton.closest('.history-item').querySelector('.history-context-menu');
+                    const willOpen = menu.hidden;
+                    closeHistoryMenus(menu);
+                    menu.hidden = !willOpen;
+                    menuButton.setAttribute('aria-expanded', String(willOpen));
+                    return;
+                }
+
+                const action = event.target.closest('[data-history-action]');
+                if (action) {
+                    event.preventDefault();
+                    const item = action.closest('.history-item');
+                    const title = item.querySelector('.history-title');
+                    const input = item.querySelector('.history-edit-input');
+                    closeHistoryMenus();
+                    if (action.dataset.historyAction === 'delete') {
+                        pendingDeleteItem = item;
+                        deleteModal?.removeAttribute('hidden');
+                        deleteModal?.querySelector('[data-confirm-delete]')?.focus();
+                        return;
+                    }
+                    title.hidden = true;
+                    input.hidden = false;
+                    input.focus();
+                    input.select();
+                }
+
+                if (!event.target.closest('.history-item')) closeHistoryMenus();
+            });
+
+            document.addEventListener('keydown', (event) => {
+                const input = event.target.closest('.history-edit-input');
+                if (!input) return;
+                const item = input.closest('.history-item');
+                const title = item.querySelector('.history-title');
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+
+                    const c_id = $(item).data("conversation-id");
+
+                    $.ajax({
+                        method: "PUT",
+                        url: `/chat/api/v1/conversation/${c_id}/`,
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        data: {
+                            title: input.value
+                        },
+
+                        success: function (res) {
+                            title.textContent = input.value.trim() || 'گفت‌وگوی بدون عنوان';
+
+                        },
+                        error: function (xhr, errmg, err) {
+                            console.log(err)
+                        }
+                    })
+
+                    title.hidden = false;
+                    input.hidden = true;
+
+
+                } else if (event.key === 'Escape') {
+                    input.value = title.textContent;
+                    title.hidden = false;
+                    input.hidden = true;
+                }
+            });
+
+            document.addEventListener('focusout', (event) => {
+                const input = event.target.closest('.history-edit-input');
+                if (!input) return;
+                const item = input.closest('.history-item');
+                const title = item.querySelector('.history-title');
+                title.textContent = input.value.trim() || 'گفت‌وگوی بدون عنوان';
+                title.hidden = false;
+                input.hidden = true;
+            });
+
+            deleteModal?.addEventListener('click', (event) => {
+                if (event.target.closest('[data-confirm-close]')) {
+                    deleteModal.setAttribute('hidden', 'hidden');
+                    pendingDeleteItem = null;
+                }
+                if (event.target.closest('[data-confirm-delete]')) {
+
+                    const c_id = $(pendingDeleteItem).data("conversation-id");
+
+                    console.log("")
+
+
+                    $.ajax({
+                        method: "DELETE",
+                        url: `/chat/api/v1/conversation/${c_id}/`,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        success: function (res) {
+                            pendingDeleteItem?.remove();
+                            pendingDeleteItem = null;
+                            deleteModal.setAttribute('hidden', 'hidden');
+
+                            pathname.includes(c_id) ? window.location.href = "/chat" : null
+
+                        },
+                        error: function (xhr, errmg, err) {
+                            console.log(err, errmg, xhr)
+                        }
+                    })
+
+
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && deleteModal && !deleteModal.hidden) {
+                    deleteModal.setAttribute('hidden', 'hidden');
+                    pendingDeleteItem = null;
+                }
+            });
+        }
+    }
+
+</script>

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+{{c.title}}
+{% endblock title %}
+
+
+{% block content %}
+<div class="app-shell">
+    <c-chat.sidebar />
+    <main class="main-panel">
+        <header class="topbar">
+            <button class="mobile-menu" type="button" aria-label="باز کردن منو" data-menu-toggle><svg
+                    viewBox="0 0 24 24">
+                    <path d="M4 7h16M4 12h16M4 17h16" />
+                </svg></button>
+            <div class="breadcrumb"><span>فضای شخصی</span><span class="crumb-slash">/</span><strong
+                    id="c-title">{{c.title}}</strong></div>
+            <div class="topbar-actions"><span class="online-state"><i></i> آماده‌به‌کار</span><button
+                    class="icon-button" aria-label="تنظیمات" type="button"><svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="m19.4 15 .1.1 1.3 1-1.4 2.4-1.6-.7a8 8 0 0 1-1.6.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.6-.9l-1.6.7-1.4-2.4 1.4-1a8 8 0 0 1 0-1.9l-1.4-1 1.4-2.4 1.6.7a8 8 0 0 1 1.6-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.6.9l1.6-.7 1.4 2.4-1.4 1a8 8 0 0 1 0 1.8Z" />
+                    </svg></button></div>
+        </header>
+        <section class="chat-stage" aria-label="فضای گفت‌وگو">
+
+            <div class="messages" id="messages" style="min-height: 75vh; padding-top:10px;" aria-live="polite">
+                {% for message in c.messages.all %}
+                <c-chat.message role="{{message.message_role}}" content="{{ message.content }}" />
+                {% endfor %}
+            </div>
+            <template id="user-message-template"><c-chat.message role="user" content="" /></template>
+            <template id="assistant-message-template"><c-chat.message role="assistant" content="" /></template>
+            <template id="loading-template"><c-chat.loading label="در حال پاسخ‌گویی" /></template>
+            <template id="fullscreen-loading-template"><c-chat.loading variant="fullscreen" label="در حال بارگذاری گفت‌وگو" /></template>
+            <div class="composer-wrap">
+                <c-chat.composer />
+                <p class="disclaimer">هم‌صحبت ممکن است اشتباه کند؛ پاسخ‌های مهم را بررسی کن.</p>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}
