@@ -33,6 +33,9 @@ ALLOWED_HOSTS = config("ALLOWED_HOTS", cast=lambda hs: [
 # Application definition
 
 INSTALLED_APPS = [
+
+    "daphne",
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -80,7 +83,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
-
+ASGI_APPLICATION = 'core.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
