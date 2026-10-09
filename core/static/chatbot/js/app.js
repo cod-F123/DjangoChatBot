@@ -6,15 +6,84 @@
   const csrf_token = document.querySelector("#csrf-token");
   const messages = document.querySelector('#messages');
   if (!stage || !form || !input || !messages) return;
+  const conversationId = document.querySelector('.main-panel')?.dataset.conversationId;
+  let socket = null;
+  let pendingReply = null;
+  let isWaitingForReply = false;
+  const sendButton = form.querySelector('button[type="submit"]');
+
+  const setComposerLocked = (locked) => {
+    isWaitingForReply = locked;
+    input.disabled = locked;
+    if (sendButton) sendButton.disabled = locked;
+    form.setAttribute('aria-busy', String(locked));
+  };
+
+  const clearPendingReply = () => {
+    pendingReply?.remove();
+    pendingReply = null;
+    setComposerLocked(false);
+  };
+
+  const scrollMessagesToBottom = () => {
+    messages.scrollTop = messages.scrollHeight;
+  };
+
+  if (conversationId) {
+    const actions = document.querySelector('.topbar-actions');
+    const socketState = document.createElement('span');
+    socketState.className = 'socket-state';
+    socketState.setAttribute('role', 'status');
+    socketState.setAttribute('aria-live', 'polite');
+    socketState.innerHTML = '<i></i><span>در حال اتصال…</span>';
+    actions?.prepend(socketState);
+
+    const scheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const socketUrl = scheme + window.location.host + '/ws/chat/' + encodeURIComponent(conversationId) + '/';
+    socket = new WebSocket(socketUrl);
+    const setSocketState = (state, label) => {
+      socketState.classList.toggle('is-connected', state === 'connected');
+      socketState.classList.toggle('is-disconnected', state === 'disconnected');
+      socketState.querySelector('span').textContent = label;
+    };
+
+    socket.addEventListener('open', () => setSocketState('connected', 'متصل'));
+    socket.addEventListener('close', () => {
+      setSocketState('disconnected', 'ارتباط قطع شد');
+      clearPendingReply();
+    });
+    socket.addEventListener('error', () => {
+      setSocketState('disconnected', 'خطا در اتصال');
+      clearPendingReply();
+    });
+    socket.addEventListener('message', (event) => {
+      clearPendingReply();
+      let content = event.data;
+      try {
+        const payload = JSON.parse(event.data);
+        content = payload.content ?? payload.message ?? payload.response ?? payload.text ?? event.data;
+      } catch (_) {
+        // Current consumer responds with plain text; JSON responses are also supported.
+      }
+      appendMessage('assistant', String(content));
+      scrollMessagesToBottom();
+    });
+  }
 
   const appendMessage = (role, content) => {
     const template = document.querySelector(`#${role}-message-template`);
     const message = template?.content.firstElementChild?.cloneNode(true);
     if (!message) return;
-    message.querySelector('[data-message-content]').textContent = content;
+    const body = message.querySelector('[data-message-content]');
+    if (window.ChatMarkdown) window.ChatMarkdown.render(body, content);
+    else body.textContent = content;
     messages.append(message);
     return message;
   };
+
+  document.querySelectorAll('#messages [data-message-content]').forEach((body) => {
+    if (window.ChatMarkdown) window.ChatMarkdown.render(body, body.textContent);
+  });
 
   const appendLoading = (label = 'در حال بارگذاری', fullscreen = false) => {
     const template = document.querySelector(fullscreen ? '#fullscreen-loading-template' : '#loading-template');
@@ -59,15 +128,29 @@
 
   const submitPrompt = (value) => {
     const prompt = value.trim();
-    if (!prompt) return;
+    if (!prompt || isWaitingForReply) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      const state = document.querySelector('.socket-state span');
+      if (state) state.textContent = 'اتصال آماده نیست';
+      return;
+    }
     stage.classList.add('has-messages');
-    appendMessage('user', prompt);
-    appendMessage('assistant', 'پیامت ثبت شد. با اتصال سرویس گفت‌وگو، پاسخ هوشمند اینجا نمایش داده می‌شود.');
-    cleareInput();
+    try {
+      socket.send(prompt);
+      appendMessage('user', prompt);
+      pendingReply = appendLoading('در حال دریافت پاسخ');
+      cleareInput();
+      setComposerLocked(true);
+      scrollMessagesToBottom();
+    } catch (_) {
+      clearPendingReply();
+      appendMessage('assistant', 'ارسال پیام انجام نشد. اتصال را بررسی کنید و دوباره تلاش کنید.');
+    }
   };
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (isWaitingForReply) return;
 
     formType.value == 'create' ? createChat(input.value) : submitPrompt(input.value);
     
@@ -91,7 +174,7 @@
   document.querySelectorAll('[data-new-chat]').forEach((button) => {
     button.addEventListener('click', () => {
       messages.replaceChildren();
-      stage.classList.remove('has-messages');
+    //   stage.classList.remove('has-messages');
       formType.value = 'create';
       input.value = '';
       input.focus();
@@ -112,4 +195,5 @@
       input.focus();
     }
   });
+  if (conversationId) requestAnimationFrame(scrollMessagesToBottom);
 })($);

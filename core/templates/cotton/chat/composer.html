@@ -1,6 +1,7 @@
 <form class="composer" id="chat-form">
     <label class="sr-only" for="prompt-input">پیام خود را بنویسید</label>
-    <textarea id="prompt-input" name="prompt" rows="1" placeholder="هر چیزی که توی ذهنته، بپرس…" required></textarea>
+    <textarea dir="auto" id="prompt-input" name="prompt" rows="1" placeholder="هر چیزی که توی ذهنته، بپرس…"
+        required></textarea>
     <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
     <input type="hidden" id="form-type" value="{% if create %}create{% else %}append{% endif %}">
     <div class="composer-tools">

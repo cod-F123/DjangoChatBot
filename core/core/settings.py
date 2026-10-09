@@ -148,3 +148,13 @@ MAILERS = {
 
 # Custom User Model
 AUTH_USER_MODEL = "accounts.User"
+
+
+# AI Configs
+AI_CONFIG = {
+    "API_KEY": config("AI_API_KEY"),
+    "API_BASE_URL": config("AI_API_BASE_URL"),
+    "CHATBOT_MAX_CONTEXT_TOKENS": 600,
+    "CHATBOT_SUMMARY_TRIGGER_RATIO": 0.8,
+    "RECENT_MESSAGES_TO_KEEP": 10
+}

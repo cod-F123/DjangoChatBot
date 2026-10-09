@@ -1,0 +1,7 @@
+.socket-state{display:inline-flex;align-items:center;gap:7px;color:#929b94;font-size:9px;white-space:nowrap}
+.socket-state i{width:6px;height:6px;border-radius:50%;background:#d9a25f;box-shadow:0 0 0 3px rgba(217,162,95,.13)}
+.socket-state.is-connected{color:#638272}.socket-state.is-connected i{background:#61a987;box-shadow:0 0 0 3px rgba(97,169,135,.14)}
+.socket-state.is-disconnected{color:#b47770}.socket-state.is-disconnected i{background:#c87970;box-shadow:0 0 0 3px rgba(200,121,112,.13)}
+@media(max-width:430px){.socket-state{font-size:8px;gap:5px}}
+.send-button:disabled{cursor:wait;opacity:.55;transform:none;box-shadow:none}
+.composer textarea:disabled{opacity:.65;cursor:wait}

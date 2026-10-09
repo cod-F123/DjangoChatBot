@@ -7,6 +7,7 @@ For more information on this file, see
 https://docs.djangoproject.com/en/6.1/howto/deployment/asgi/
 """
 
+from chatbot.websocket.routing import websocket_urlpatterns as chatbot_routes
 import os
 
 from django.core.asgi import get_asgi_application
@@ -27,7 +28,7 @@ application = ProtocolTypeRouter({
         SessionMiddlewareStack(
             AuthMiddlewareStack(
                 URLRouter(
-                    []
+                    chatbot_routes
                 )
             )
         )

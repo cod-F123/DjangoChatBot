@@ -1,0 +1,17 @@
+html,body{height:100%;min-height:0}
+.app-shell{height:100vh;height:100dvh;min-height:0;overflow:hidden}
+.main-panel{height:100vh;height:100dvh;min-height:0;overflow:hidden}
+.chat-stage{height:calc(100vh - 66px);height:calc(100dvh - 66px);min-height:0;overflow:hidden}
+.composer-wrap{flex:0 0 auto}
+.chat-stage.has-messages .messages{flex:1 1 0;min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;margin:18px auto 0;padding:10px 4px 22px;scroll-behavior:smooth}
+.chat-stage.has-messages .composer-wrap{flex:0 0 auto;margin:12px auto 14px}
+.messages::-webkit-scrollbar{width:6px}.messages::-webkit-scrollbar-track{background:transparent}.messages::-webkit-scrollbar-thumb{border:2px solid transparent;border-radius:8px;background:#cbd7ce;background-clip:padding-box}.messages{scrollbar-width:thin;scrollbar-color:#cbd7ce transparent}
+@media(max-width:760px){.chat-stage{height:calc(100vh - 66px);height:calc(100dvh - 66px);min-height:0}.chat-stage.has-messages .composer-wrap{margin-bottom:max(10px,env(safe-area-inset-bottom))}}
+.messages::-webkit-scrollbar{
+    display: hidden;
+}
+
+.messages{
+    -ms-overflow-style: none;  
+    scrollbar-width: none;
+}

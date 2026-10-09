@@ -32,8 +32,6 @@ class CoversationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["user"] = self.context.get("request").user
 
-        print(validated_data)
-
         message = validated_data.get("message")
 
         if not message:
