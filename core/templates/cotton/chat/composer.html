@@ -1,14 +1,19 @@
 <form class="composer" id="chat-form">
+    <input class="sr-only" id="file-input" type="file" multiple tabindex="-1" data-upload-endpoint="{% url 'chatbot:api-v1:attachemtns-api' %}" aria-label="انتخاب فایل‌ها">
+    <div class="file-attachments" id="file-attachments" hidden>
+        <div class="file-attachments-list" id="file-attachments-list" aria-live="polite"></div>
+        <p class="file-attachments-note" id="file-attachments-note">فایل‌ها با ارسال پیام در گفتگو ذخیره می‌شوند.</p>
+    </div>
     <label class="sr-only" for="prompt-input">پیام خود را بنویسید</label>
     <textarea dir="auto" id="prompt-input" name="prompt" rows="1" placeholder="هر چیزی که توی ذهنته، بپرس…"
-        required></textarea>
+        ></textarea>
     <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
     <input type="hidden" id="form-type" value="{% if create %}create{% else %}append{% endif %}">
     <div class="composer-tools">
         <div class="tool-group">
             <button class="tool-button" type="button" aria-label="افزودن فایل" title="افزودن فایل"><svg
                     viewBox="0 0 24 24">
-                    <path d="M12 5v14M5 12h14" />
+                    <path d="m8 12.5 6.9-6.9a3.1 3.1 0 0 1 4.4 4.4l-8.5 8.5a5 5 0 0 1-7.1-7.1l8.1-8.1" />
                 </svg></button>
             <span class="tool-divider"></span>
             <button class="mode-button" type="button"><span class="mode-spark">✳</span> فکر عمیق <span

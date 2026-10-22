@@ -32,4 +32,7 @@ class TokenManager:
 
         token_count = self.count(messages)
 
+        logger.log(logging.INFO, "Token count: %s, Trigger tokens: %s" %
+                   (token_count, self.trigger_tokens))
+
         return token_count >= self.trigger_tokens

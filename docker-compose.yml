@@ -3,7 +3,7 @@ services:
   core:
     build: .
     environment:
-      - SECURITY_KEY=test
+      - SECRET_KEY=test
       - DEBUG=True
 
     ports:

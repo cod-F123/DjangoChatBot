@@ -2,16 +2,19 @@ from channels.consumer import AsyncConsumer
 from channels.exceptions import StopConsumer
 from channels.db import database_sync_to_async
 from django.conf import settings
-from chatbot.models import Conversation, Message
+from django.db import transaction
+from chatbot.models import Conversation, Message, MessageAttachment
 
 from openai import AsyncOpenAI
 
 from chatbot.services.chat_service import ChatService
 
 from asgiref.sync import AsyncToSync
+import json
 
 
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -58,32 +61,127 @@ class ChatBotConsumer(AsyncConsumer):
                 "type": "websocket.accept",
             })
 
+        else:
+
+            await self.send({
+                "type": "websocket.close"
+            })
+
     async def websocket_disconnect(self, event):
 
         raise StopConsumer()
 
     async def websocket_receive(self, event):
 
-        text_message = event.get("text")
+        try:
+            data = json.loads(event.get("text", "{}"))
 
-        user_message = await self.create_message(text_message, "user")
+            if not isinstance(data, dict):
+                raise ValueError("Invalid message format.")
 
-        ai_answer = await self.chat_service.generate_response()
+            content = data.get("text", "")
+            attachment_ids = data.get("attachments", [])
 
-        if ai_answer:
+            if not isinstance(content, str):
+                raise ValueError("Message text must be a string.")
 
-            ai_message = await self.create_message(ai_answer, "assistant")
+            if not isinstance(attachment_ids, list):
+                raise ValueError("Attachments must be a list.")
+
+            if not content.strip() and not attachment_ids:
+                raise ValueError("Message cannot be empty.")
+
+            user_message = await self.create_message_with_attachments(
+                content=content,
+                role="user",
+                attachment_ids=attachment_ids,
+            )
+
+        except (json.JSONDecodeError, ValueError) as exc:
+            await self.send({
+                "type": "websocket.send",
+                "text": json.dumps({
+                    "type": "error",
+                    "message": str(exc),
+                }),
+            })
+            return
+
+        try:
+            ai_answer = await self.chat_service.generate_response()
+
+            if ai_answer:
+                ai_message = await self.create_message_with_attachments(
+                    content=ai_answer,
+                    role="assistant",
+                    attachment_ids=[],
+                )
+
+                await self.send({
+                    "type": "websocket.send",
+                    "text": json.dumps({
+                        "type": "message",
+                        "message": ai_message.content,
+                    }),
+                })
+
+        except Exception:
+            logger.exception("Error generating AI response")
 
             await self.send({
                 "type": "websocket.send",
-                "text": ai_message.content
+                "text": json.dumps({
+                    "type": "error",
+                    "message": "خطا در ارتباط با مدل زبانی",
+                }),
             })
 
     @database_sync_to_async
     def get_conversation(self):
 
-        return Conversation.objects.filter(converstation_id=self.c_id, user=self.user).first()
+        return Conversation.objects.prefetch_related("messages").prefetch_related("summaries").filter(converstation_id=self.c_id, user=self.user).first()
 
     @database_sync_to_async
-    def create_message(self, content, role):
-        return Message.objects.create(Conversation=self.conversation, content=content, message_role=role)
+    def create_message_with_attachments(self, content, role, attachment_ids):
+        if not isinstance(attachment_ids, list):
+            raise ValueError("Attachments must be a list.")
+
+        if len(attachment_ids) > 10:
+            raise ValueError("Too many attachments.")
+
+        # Validate UUIDs and remove duplicates.
+        try:
+            attachment_ids = list(
+                dict.fromkeys(uuid.UUID(str(item)) for item in attachment_ids)
+            )
+        except (ValueError, TypeError, AttributeError):
+            raise ValueError("Invalid attachment ID.")
+
+        with transaction.atomic():
+            message = Message.objects.create(
+                Conversation=self.conversation,
+                content=content,
+                message_role=role,
+            )
+
+            if attachment_ids:
+                attachments = list(
+                    MessageAttachment.objects.select_for_update().filter(
+                        id__in=attachment_ids,
+                        conversation=self.conversation,
+                        source=role,
+                        uploaded_by=self.user,
+                        message__isnull=True,
+                    )
+                )
+
+                if len(attachments) != len(attachment_ids):
+                    raise ValueError(
+                        "Some attachments are invalid or unavailable."
+                    )
+
+                MessageAttachment.objects.filter(
+                    id__in=[attachment.id for attachment in attachments]
+                ).update(message=message)
+
+        return message

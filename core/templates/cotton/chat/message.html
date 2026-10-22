@@ -1,3 +1,16 @@
 <div class="message {{ role }}" data-message>
     <div data-message-content dir="auto">{{ content }}</div>
+    {% if attachments %}
+    <div class="message-attachments" aria-label="فایل‌های پیوست‌شده">
+        {% for attachment in attachments %}
+        <div class="file-attachment is-uploaded" data-file-id="{{ attachment.id }}">
+            <span class="file-attachment-icon" aria-hidden="true">{{ attachment.original_name|cut:" "|slice:"-4:"|upper }}</span>
+            <span class="file-attachment-details">
+                <strong>{{ attachment.original_name }}</strong>
+                <small class="file-attachment-status">{{ attachment.size|filesizeformat }}</small>
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>

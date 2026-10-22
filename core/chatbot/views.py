@@ -6,16 +6,6 @@ from .models import Conversation
 # Create your views here.
 
 
-# def chat_view(request):
-#     return render(request, "chatbot/chatbot.html", {})
-
-
-# def chat_detail_view(request, c_id):
-
-#     c = get_object_or_404(Conversation, converstation_id=c_id)
-#     return render(request, "chatbot/chat_detail.html", {})
-
-
 class ChatView(LoginRequiredMixin, TemplateView):
     template_name = "chatbot/chatbot.html"
 

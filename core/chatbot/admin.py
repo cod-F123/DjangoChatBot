@@ -1,17 +1,24 @@
 from django.contrib import admin
-from .models import Conversation, Message, ConversationSummary
+from .models import Conversation, Message, ConversationSummary, MessageAttachment
 
 # Register your models here.
 
 
-class MessageAdminInline(admin.StackedInline):
+class MessageAdminInline(admin.TabularInline):
     model = Message
     extra = 1
 
     show_change_link = True
 
 
-class CoverstationSummaryAdminInline(admin.StackedInline):
+class MessageAttachmentAdminInline(admin.TabularInline):
+    model = MessageAttachment
+    extra = 0
+
+    show_change_link = True
+
+
+class CoverstationSummaryAdminInline(admin.TabularInline):
     model = ConversationSummary
     extra = 0
 
@@ -27,4 +34,10 @@ class ConverstationAdmin(admin.ModelAdmin):
 
     readonly_fields = ["converstation_id", "created_at", "updated_at"]
 
-    inlines = [MessageAdminInline, CoverstationSummaryAdminInline]
+    inlines = [MessageAttachmentAdminInline,
+               MessageAdminInline, CoverstationSummaryAdminInline]
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ["id", "Conversation__id", "message_role", "created_at"]

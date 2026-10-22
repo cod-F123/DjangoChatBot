@@ -1,7 +1,7 @@
 from django.conf import settings
-from django.db import transaction
 from asgiref.sync import sync_to_async
-from chatbot.models import ConversationSummary, Message, Conversation
+from chatbot.models import ConversationSummary, Conversation
+from chatbot.services.attachment_service import AttachmentService
 
 
 RECENT_MESSAGES_TO_KEEP = settings.AI_CONFIG.get("RECENT_MESSAGES_TO_KEEP")
@@ -32,6 +32,7 @@ class Summarizer:
 
         self.conversation = conversation
         self.llm = llm
+        self.attachment_service = AttachmentService()
 
     @sync_to_async
     def get_messages_to_summarize(self):
@@ -48,16 +49,16 @@ class Summarizer:
         )
 
         messages = list(
-            self.conversation.messages.filter(
+            self.conversation.messages.prefetch_related("attachments").filter(
                 id__gt=summarised_util_id,
                 message_role__in=["user", "assistant"]
-            )
+            ).order_by("id")
         )
 
-        if len(messages) <= 10:
+        if len(messages) <= RECENT_MESSAGES_TO_KEEP:
             return []
 
-        return messages[:-10]
+        return messages[:-3]
 
     @sync_to_async
     def get_latest_summary(self):
@@ -88,8 +89,24 @@ class Summarizer:
 
         for message in messages:
 
+            content = message.content
+
+            # Add attachment text in content
+            for attachment in message.attachments.all():
+
+                extracted_text = self.attachment_service.extract_text(
+                    attachment)
+
+                if extracted_text:
+
+                    content += (
+                        "\n\n"
+                        f"[محتوای فایل: {attachment.original_name}]\n"
+                        f"{extracted_text}"
+                    )
+
             parts.append(
-                f"{message.message_role} : {message.content}"
+                f"{message.message_role} : {content}"
             )
 
         parts.append(SUMMARY_PROMPT)
@@ -134,9 +151,12 @@ class Summarizer:
 
         summary = await self.generate_summary(prompt)
 
+        if not summary or not summary.strip():
+            return None
+
         await self.save_summary(
-            summary=summary,
+            summary=summary.strip(),
             summarized_until_message=messages[-1],
         )
 
-        return summary
+        return summary.strip()

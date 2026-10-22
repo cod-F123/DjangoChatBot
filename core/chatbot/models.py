@@ -63,3 +63,50 @@ class ConversationSummary(models.Model):
         Message, on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class MessageAttachment(models.Model):
+
+    class Source(models.TextChoices):
+        USER = "user", "user"
+        ASSISTANT = "assistant", "assistant"
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name="attachments"
+    )
+
+    message = models.ForeignKey(
+        Message, on_delete=models.CASCADE, related_name="attachments", blank=True, null=True
+    )
+
+    source = models.CharField(
+        max_length=10,
+        choices=Source.choices,
+    )
+
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, blank=True, null=True, related_name="chat_attachments"
+    )
+
+    file = models.FileField(
+        upload_to="chat_attachments/%Y/%m/",
+    )
+
+    # content = models.TextField(blank=True, null=True)
+
+    original_name = models.CharField(max_length=255)
+
+    mime_type = models.CharField(max_length=100)
+
+    size = models.PositiveBigIntegerField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.original_name

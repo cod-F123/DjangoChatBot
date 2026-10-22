@@ -9,7 +9,7 @@ router = DefaultRouter()
 router.register("conversation", views.ConversationViewSet, "conversation")
 
 urlpatterns = [
-
+    path("files/", views.MessageAttachmentsApiView.as_view(), name="attachemtns-api"),
 ]
 
 urlpatterns += router.urls

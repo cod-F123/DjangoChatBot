@@ -41,11 +41,15 @@ class ChatService:
 
         conversation_context = await self.build_context()
 
+        counter = self.token_counter.count_messages(conversation_context)
+        logger.log(logging.INFO, "Conversation %s token count: %s" %
+                   (self.conversation.pk, counter))
+
         if self.token_manager.needs_summary(conversation_context):
 
             await self.summarizer.summarize()
 
-            logger.log(logging.INFO, "Conversatin %s summarized ",
+            logger.log(logging.INFO, "Conversatin %s summarized " %
                        self.conversation.pk)
 
             conversation_context = await self.build_context()

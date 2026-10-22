@@ -5,3 +5,7 @@ db.*
 *.db
 __pycach__/
 *.pyc
+
+media
+
+*.log

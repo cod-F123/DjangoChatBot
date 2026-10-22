@@ -1,4 +1,5 @@
 from chatbot.models import Message, Conversation, ConversationSummary
+from chatbot.services.attachment_service import AttachmentService
 
 
 class ContextBuilder:
@@ -8,29 +9,51 @@ class ContextBuilder:
         self.conversation = conversation
 
     def build(self):
-
         context = []
 
-        conversation_context: ConversationSummary = self.conversation.summaries.all(
-        ).order_by("-created_at").first()
+        latest_summary: ConversationSummary | None = (
+            self.conversation.summaries
+            .order_by("-created_at")
+            .first()
+        )
 
-        if conversation_context:
+        messages = self.conversation.messages.all()
 
+        if latest_summary:
             context.append({
                 "role": "system",
-                "content": conversation_context.summary
+                "content": latest_summary.summary,
             })
 
-            conversation_messages: list[Message] = self.conversation.messages.filter(
-                id__gt=conversation_context.summarized_until_message.id
-            ).order_by("created_at")
+            messages = messages.filter(
+                id__gt=latest_summary.summarized_until_message.id
+            )
 
-        else:
+        messages = (
+            messages
+            .prefetch_related("attachments")
+            .order_by("id")
+        )
 
-            conversation_messages: list[Message] = self.conversation.messages.all(
-            ).order_by("created_at")
+        for message in messages:
 
-        context.extend({"role": m.message_role, "content": m.content}
-                       for m in conversation_messages)
+            content = message.content
+
+            for attachment in message.attachments.all():
+                extracted_text = AttachmentService.extract_text(
+                    attachment
+                )
+
+                if extracted_text:
+                    content += (
+                        "\n\n"
+                        f"[محتوای فایل: {attachment.original_name}]\n"
+                        f"{extracted_text}"
+                    )
+
+            context.append({
+                "role": message.message_role,
+                "content": content,
+            })
 
         return context
