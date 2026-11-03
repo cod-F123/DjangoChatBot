@@ -18,6 +18,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Logging Config
+os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+Path(BASE_DIR/'logs/django_app.log').touch(exist_ok=True)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,  # Keeps Django's default loggers running

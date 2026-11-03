@@ -58,7 +58,7 @@ class Summarizer:
         if len(messages) <= RECENT_MESSAGES_TO_KEEP:
             return []
 
-        return messages[:-3]
+        return messages[:-RECENT_MESSAGES_TO_KEEP]
 
     @sync_to_async
     def get_latest_summary(self):

@@ -98,7 +98,10 @@ class MessageAttachment(models.Model):
         upload_to="chat_attachments/%Y/%m/",
     )
 
-    # content = models.TextField(blank=True, null=True)
+    extracted_content = models.TextField(
+        blank=True,
+        default="",
+    )
 
     original_name = models.CharField(max_length=255)
 
